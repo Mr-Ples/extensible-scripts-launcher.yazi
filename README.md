@@ -4,7 +4,7 @@ This plugin was almost completely vibe coded, i didn't read this readme either. 
 
 # Extensible Scripts Plugin for Yazi
 
-![Watch Demo Video](https://github.com/Mr-Ples/extensible-scripts-launcher-launcher.yazi/blob/main/showcase.gif)
+![Watch Demo Video](https://github.com/Mr-Ples/extensible-scripts-launcher.yazi/blob/main/showcase.gif)
 
 A powerful script runner plugin for Yazi that provides a unified interface to execute external scripts, built-in functions, and custom modules through an fzf-powered selection menu.
 
