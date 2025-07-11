@@ -104,13 +104,17 @@ local function execute_script(script)
 		local current_file = get_current_file()
 		local cmd = script.cmd
 		
-		-- If the script expects a file argument and we have one, append it
-		if current_file and current_file ~= "" then
+		-- Only append file if script wants input and we have a file
+		if script.input ~= false and current_file and current_file ~= "" then
 			cmd = cmd .. " '" .. current_file .. "'"
 		end
-		
+		local block = script.block or false
+		local orphan = not block
 		info("Executing: " .. script.name)
-		ya.manager_emit("shell", { cmd, confrim=false, orphan=true, block = false })
+		-- debug("Full command: " .. cmd)
+		
+		-- Execute with blocking to capture any errors
+		ya.manager_emit("shell", { cmd, confirm=false, orphan=orphan, block = block })
 	else
 		fail("Script has no command or function defined")
 	end

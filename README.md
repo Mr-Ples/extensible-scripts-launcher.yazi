@@ -10,12 +10,13 @@ A powerful script runner plugin for Yazi that provides a unified interface to ex
 
 ## Features
 
-- **External Script Execution**: Run any shell script or command with automatic file argument passing
+- **External Script Execution**: Run any shell script or command with configurable file argument passing
 - **Built-in Functions**: Execute Lua functions directly within the plugin with rich context data
 - **Modular System**: Load custom functions from separate Lua modules in the `modules/` directory  
 - **Category Organization**: Group scripts and functions by category for better organization
 - **fzf Integration**: Beautiful fuzzy search interface with categorized sections
-- **File Context**: Automatically passes the currently hovered file as an argument to scripts
+- **File Context**: Automatically passes the currently hovered file as an argument to scripts (configurable)
+- **Execution Control**: Choose between blocking and non-blocking script execution
 - **Extensible**: Easy to add new scripts, functions, and modules
 
 ## Installation
@@ -60,12 +61,30 @@ Configure the plugin in your `init.lua`:
 ```lua
 require("extensible-scripts-launcher"):setup({
     scripts = {
-        -- External shell scripts
+        -- External shell scripts with file input (default)
         { 
             name = "Upload File", 
             cmd = "/home/user/scripts/upload_file.sh", 
             desc = "Upload selected file", 
             category = "Utilities" 
+        },
+        
+        -- Script without file input
+        { 
+            name = "System Info", 
+            cmd = "/home/user/scripts/system_info.sh", 
+            desc = "Show system information", 
+            category = "Info",
+            input = false  -- Don't pass current file as argument
+        },
+        
+        -- Blocking script that waits for completion
+        { 
+            name = "Install Package", 
+            cmd = "/home/user/scripts/install_package.sh", 
+            desc = "Install selected package", 
+            category = "System",
+            block = true  -- Wait for script to complete (if you want user input e.g.)
         },
         
         -- Built-in Lua functions
@@ -103,6 +122,56 @@ Each script entry supports these properties:
 - **`category`** (optional): Groups scripts under section headers
 - **`cmd`** (for external scripts): Path to executable script/command
 - **`func`** (for built-in functions): Name of Lua function to execute
+- **`input`** (optional): Whether to pass the current file as an argument to external scripts (default: `true`)
+- **`block`** (optional): Whether to run the script in blocking mode, waiting for completion (default: `false`)  (if you want user input e.g.)
+
+### Input Control
+
+The `input` option controls whether the currently hovered file path is automatically passed as an argument to external scripts:
+
+- **`input = true`** (default): Appends the current file path as the last argument
+- **`input = false`**: Runs the script without any file arguments
+
+```lua
+-- Example: Script that operates on the current file
+{ 
+    name = "Compress File", 
+    cmd = "/home/user/scripts/compress.sh",
+    input = true  -- Will run: /home/user/scripts/compress.sh "/path/to/current/file"
+}
+
+-- Example: Script that doesn't need file input
+{ 
+    name = "Clean Downloads", 
+    cmd = "/home/user/scripts/clean_downloads.sh",
+    input = false  -- Will run: /home/user/scripts/clean_downloads.sh
+}
+```
+
+### Execution Control
+
+If you want user input for example.
+
+The `block` option controls how script execution is handled:
+
+- **`block = false`** (default): Non-blocking execution - script runs in background, Yazi remains responsive
+- **`block = true`**: Blocking execution - Yazi waits for script to complete before continuing
+
+```lua
+-- Example: Background file upload (non-blocking)
+{ 
+    name = "Upload to Cloud", 
+    cmd = "/home/user/scripts/upload.sh",
+    block = false  -- Returns control immediately, upload continues in background
+}
+
+-- Example: Interactive script requiring user input (blocking)
+{ 
+    name = "Git Commit", 
+    cmd = "/home/user/scripts/interactive_commit.sh",
+    block = true  -- Waits for user interaction and script completion
+}
+```
 
 ## Built-in Functions
 
@@ -174,16 +243,16 @@ Then reference them in your configuration:
 2. **Categorization**: Scripts are grouped by their `category` property, with uncategorized items under "Other"
 3. **fzf Interface**: A searchable menu displays all available scripts with section headers
 4. **Execution**: Selected scripts are executed with appropriate context:
-   - **External scripts**: Current file path appended as argument
+   - **External scripts**: Current file path conditionally appended based on `input` setting
    - **Built-in functions**: Context object passed as first parameter
 
 ## File Context
 
 ### For External Scripts
-When executing external scripts, the plugin automatically:
-- Gets the currently hovered file path
-- Appends it as an argument to the command
-- Executes the command asynchronously (non-blocking)
+When executing external scripts, the plugin behavior depends on the `input` setting:
+- **With `input = true`** (default): Gets the currently hovered file path and appends it as an argument
+- **With `input = false`**: Runs the script without any file arguments
+- Execution mode is controlled by the `block` setting (blocking vs non-blocking)
 
 ### For Built-in Functions
 Built-in functions receive a rich context object containing:
@@ -200,11 +269,13 @@ This allows both external scripts and built-in functions to operate on the selec
 
 ## Example Use Cases
 
-- **File Operations**: Upload, convert, compress files
-- **System Control**: WiFi, Bluetooth, VPN management  
-- **Development Tools**: Git operations, build scripts
-- **Media Processing**: Video/image conversion, screenshots
+- **File Operations**: Upload, convert, compress files (with `input = true`)
+- **System Control**: WiFi, Bluetooth, VPN management (with `input = false`)
+- **Development Tools**: Git operations, build scripts (with `block = true` for interactive commands)
+- **Media Processing**: Video/image conversion, screenshots (with `input = true`)
 - **Utility Functions**: Time display, file info, directory listing
 - **Script Management**: Add executable files as scripts dynamically
+- **Background Tasks**: File uploads, backups (with `block = false`)
+- **Interactive Scripts**: Package installation, git commits (with `block = true`)
 
-The plugin provides a flexible framework for integrating any external tool or custom function into your Yazi workflow. 
+The plugin provides a flexible framework for integrating any external tool or custom function into your Yazi workflow with fine-grained control over execution behavior. 
